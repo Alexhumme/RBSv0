@@ -1,0 +1,19 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+
+[dev-packages]
+pycodestyle = "*"
+
+[requires]
+python_version = "3.11"
+
+[scripts]
+lint = "pycodestyle RBSv0 test"
+
+[scripts]
+lint = "pycodestyle asd tests"
+test = "python -m unittest discover"
