@@ -216,7 +216,7 @@ while True:
     if(page==1):
         dirN = pageHome()
     elif(page==4):
-        pageBatalla([personajes.personajes[3],personajes.personajes[1]])
+        pageBatalla([personajes.personajes[2],personajes.personajes[1]])
         #pageBatalla(copy.copy([personajes.personajes[1],personajes.personajes[0]]))
         #pageBatalla(copy.copy([random.choice(personajes.personajes),random.choice(personajes.personajes)]))
 
