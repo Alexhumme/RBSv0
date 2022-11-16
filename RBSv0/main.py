@@ -8,7 +8,7 @@ ventanaH = 500
 ventanaC = [0,0,0]
 fps = 60 
 crx=150
-
+IMGS = "RBSv0/assets/imgs/"
 # ejecutando ventana
 pygame.init()
 ventana = pygame.display.set_mode((ventanaW,ventanaH))
@@ -103,12 +103,24 @@ def pageHome():
     ttl_rect = ttl.get_rect(center = (350,180))
     fuente = pygame.font.Font(fStyle,50)
     ventana.blit(ttl,ttl_rect)
-    salir = btnNext("iniciar",4,((ventanaW/2)),320)
+    salir = btnNext("iniciar",2,((ventanaW/2)),320)
+    if pygame.key.get_pressed()[pygame.K_DOWN]:
+        salir = 2
     return salir
     
 
 def pageSelect(personajes:list):
     navLabels("Selecciona",crx=crx)
+
+    for char in personajes:
+        char_surf = pygame.Surface((70, 100))
+        char_surf.fill("white")
+        fuente = pygame.font.Font(fStyle,17)
+        name = fuente.render(char.nombre,False,"Black")
+        name_rect = name.get_rect(center = (char_surf.get_width()/2,70))
+        icon = pygame.image.load(IMGS+"/personajes"+char.imgRoot+"icon.png")
+        char_surf.blit(name,name_rect)
+        ventana.blit(char_surf, (150+(personajes.index(char)*80),120))
 
     return []
 def pageBatalla(personajes:list):
@@ -209,12 +221,14 @@ while True:
                 print("Configuracion")
             elif btnInfoRct.collidepoint(mouse_pos):
                 print("informacion")
-            elif btnN_rect.collidepoint(mouse_pos):
+            elif btnN_rect.collidepoint(mouse_pos) and page == 1:
                 print("siguente")
                 page = dirN
 
     if(page==1):
         dirN = pageHome()
+    elif(page==2):
+        dirN = pageSelect(personajes.personajes)
     elif(page==4):
         pageBatalla([personajes.personajes[2],personajes.personajes[1]])
         #pageBatalla(copy.copy([personajes.personajes[1],personajes.personajes[0]]))

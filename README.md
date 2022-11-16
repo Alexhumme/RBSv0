@@ -11,8 +11,8 @@ RBS es la idea de un juego de video de lucha efectuado con la lireria pygame
 
 * Python 3
 * Pipenv `pip install pipenv`
-* pip install pygame --pre
-* pip install colorama
+* pygame `pip install pygame --pre`
+* colorama `pip install colorama`
 
 
 ## Setup
