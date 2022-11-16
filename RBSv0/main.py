@@ -8,7 +8,9 @@ ventanaH = 500
 ventanaC = [0,0,0]
 fps = 60 
 crx=150
-IMGS = "RBSv0/assets/imgs/"
+IMGS = "assets/imgs/"
+personajesL = [False,False]
+sltd = False
 # ejecutando ventana
 pygame.init()
 ventana = pygame.display.set_mode((ventanaW,ventanaH))
@@ -111,18 +113,88 @@ def pageHome():
 
 def pageSelect(personajes:list):
     navLabels("Selecciona",crx=crx)
-
+    sltd = False
+    chars_r = []
+    
     for char in personajes:
-        char_surf = pygame.Surface((70, 100))
+        char_surf = pygame.Surface((70, 100)).convert()
+        char_rect = char_surf.get_rect(topleft=(150+(personajes.index(char)*80),120))
         char_surf.fill("white")
         fuente = pygame.font.Font(fStyle,17)
-        name = fuente.render(char.nombre,False,"Black")
+        name = fuente.render(char.nombre,False,"Black").convert()
         name_rect = name.get_rect(center = (char_surf.get_width()/2,70))
-        icon = pygame.image.load(IMGS+"/personajes"+char.imgRoot+"icon.png")
+        icon = pygame.image.load(IMGS+"personajes/"+char.imgRoot+"icon.png").convert()
+        char_surf.blit(icon,(10,10))
         char_surf.blit(name,name_rect)
-        ventana.blit(char_surf, (150+(personajes.index(char)*80),120))
+        ventana.blit(char_surf,char_rect)
+        chars_r.append(char_rect)
+    
+    mouse_pos = pygame.mouse.get_pos()
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT: # para poder salir
+            pygame.quit()
+            exit()
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            for char_r in chars_r:
+                if char_r.collidepoint(mouse_pos): 
+                    if not personajesL[0]:
+                        print("jugador: "+personajes[chars_r.index(char_r)].nombre)
+                        personajesL[0] = personajes.pop(chars_r.index(char_r))
+                    elif not personajesL[1]:
+                        print("oponente: "+personajes[chars_r.index(char_r)].nombre)
+                        personajesL[1] = personajes.pop(chars_r.index(char_r))
+    if personajesL[0]:
+        info_p = pygame.Surface((150, 325))
+        info_p_rect = info_p.get_rect(topleft=(0,100))
+        info_p.fill("Black")
+        info_p_img = pygame.image.load(IMGS+"personajes/"+personajesL[0].imgRoot+"stand.png").convert_alpha()
+        info_p_img_rect = info_p_img.get_rect(center=(info_p_rect.width/2,(info_p_rect.height/2)-20))
+        
+        info_p_hp = fuente.render("Hp: %s"%personajesL[0].saludMax,False,"White")
+        info_p_atk = fuente.render("Atk: %s"%personajesL[0].ataque,False,"White") 
+        info_p_def = fuente.render("Def: %s"%personajesL[0].defensa,False,"White") 
+        info_p_vel = fuente.render("Vel: %s"%personajesL[0].velocidad,False,"White")
+        info_p.blit(info_p_img,info_p_img_rect)
+        
+        info_p.blit(info_p_hp,(10,250))
+        info_p.blit(info_p_atk,(10,270))
+        info_p.blit(info_p_def,(10,290))
+        info_p.blit(info_p_vel,(10,310))
+        
+        fuente = pygame.font.Font(fStyle,25)
+        info_p_n = fuente.render(personajesL[0].nombre,False,"White")
+        info_p.blit(info_p_n,((info_p_rect.width/2)-info_p_n.get_width()/2,10))
+        
+        ventana.blit(info_p,info_p_rect)
+        fuente = pygame.font.Font(fStyle,17)
+        
+    if personajesL[1]:
+        info_p2 = pygame.Surface((150, 325))
+        info_p2_rect = info_p2.get_rect(topleft=(550,100))
+        info_p2.fill("Black")
+        info_p2_img = pygame.transform.flip(pygame.image.load(IMGS+"personajes/"+personajesL[1].imgRoot+"stand.png").convert_alpha(),True,False)
+        info_p2_img_rect = info_p2_img.get_rect(center=(info_p2_rect.width/2,info_p2_rect.height/2))
+        
+        info_p2_hp = fuente.render("Hp: %s"%personajesL[1].saludMax,False,"White")
+        info_p2_atk = fuente.render("Atk: %s"%personajesL[1].ataque,False,"White") 
+        info_p2_def = fuente.render("Def: %s"%personajesL[1].defensa,False,"White") 
+        info_p2_vel = fuente.render("Vel: %s"%personajesL[1].velocidad,False,"White")
+        info_p2.blit(info_p2_img,info_p2_img_rect)
+        
+        info_p2.blit(info_p2_hp,(10,250))
+        info_p2.blit(info_p2_atk,(10,270))
+        info_p2.blit(info_p2_def,(10,290))
+        info_p2.blit(info_p2_vel,(10,310))
+        
+        fuente = pygame.font.Font(fStyle,25)
+        info_p2_n = fuente.render(personajesL[1].nombre,False,"White")
+        info_p2.blit(info_p_n,((info_p2_rect.width/2)-info_p2_n.get_width()/2,10))
+        
+        ventana.blit(info_p2,info_p2_rect)
+        sltd = True
+    if sltd: return btnNext("empezar",4,ventana.get_width()/2,400)
+    else: return False
 
-    return []
 def pageBatalla(personajes:list):
     jugador = personajes[0]
     oponente = personajes[1]
@@ -141,8 +213,8 @@ def pageBatalla(personajes:list):
     
     jugador.mover()
     oponente.mover(True)
-    jugadorImg = pygame.image.load("assets/imgs/personajes/"+jugador.imgRoot).convert_alpha()
-    oponenteImg = pygame.transform.flip(pygame.image.load("assets/imgs/personajes/"+oponente.imgRoot).convert_alpha(),True,False)
+    jugadorImg = pygame.image.load("assets/imgs/personajes/"+jugador.imgAct).convert_alpha()
+    oponenteImg = pygame.transform.flip(pygame.image.load("assets/imgs/personajes/"+oponente.imgAct).convert_alpha(),True,False)
     ventana.blit(jugadorImg,(jugador.x,jugador.y))
     ventana.blit(oponenteImg,(oponente.x,oponente.y))
 
@@ -221,7 +293,7 @@ while True:
                 print("Configuracion")
             elif btnInfoRct.collidepoint(mouse_pos):
                 print("informacion")
-            elif btnN_rect.collidepoint(mouse_pos) and page == 1:
+            elif btnN_rect.collidepoint(mouse_pos):
                 print("siguente")
                 page = dirN
 
@@ -230,7 +302,7 @@ while True:
     elif(page==2):
         dirN = pageSelect(personajes.personajes)
     elif(page==4):
-        pageBatalla([personajes.personajes[2],personajes.personajes[1]])
+        pageBatalla(personajesL)
         #pageBatalla(copy.copy([personajes.personajes[1],personajes.personajes[0]]))
         #pageBatalla(copy.copy([random.choice(personajes.personajes),random.choice(personajes.personajes)]))
 

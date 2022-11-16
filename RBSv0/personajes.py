@@ -40,7 +40,8 @@ class personaje: # clase para la construccion de los personajes
         self.puntosMax = 100
         self.puntos = 50 # energia, una mecanica de intercambio
         self.estado = "/stand.png"
-        self.imgRoot = imgRoot+self.estado
+        self.imgRoot = imgRoot 
+        self.imgAct = imgRoot+self.estado
         self.x = 0
         self.y = 0
         self.velx = 0
