@@ -4,7 +4,7 @@ from colorama import init,Fore,Style
 
 class item: # items que un personaje puede usar
     # el item por defecto es un té
-    def __init__(self,nombre="té🍵", cantidad=3, dialogo=("\n --- té refrescante que cura 35hp🍵"), efectos=["hp"], valores=[35],img="/te.png"):
+    def __init__(self,nombre="té🍵", cantidad=3, dialogo=("\n --- té refrescante que cura 35hp🍵"), efectos=["hp"], valores=[35],img="/desconocido.png"):
         self.id = " "
         self.usuario = " "
         self.nombre = nombre
@@ -230,7 +230,7 @@ Bolsa:
         if self.vivo():
             self.cool = math.floor(300/self.velocidad)
             if self.puntos >= 70:
-                opc = ["1", "1", "1", "1", "2", "3", "4", "4"]
+                opc = ["1", "1", "1", "1", "1", "2", "3", "4", "4"]
             elif self.puntos >= 35:
                 opc = ["1", "1", "1", "1","2", "2", "3", "4"]
             else:
@@ -252,10 +252,10 @@ Bolsa:
             if keys[pygame.K_1] or keys[pygame.K_2] or keys[pygame.K_3] or keys[pygame.K_4]: return self.uBolsa(False)
             if keys[pygame.K_z]: self.desc(); return False
             elif keys[pygame.K_x]: oponente.desc(); return False
-            elif keys[pygame.K_RIGHT]: self.cool = math.floor(150/self.velocidad); return self.atacar(oponente)
-            elif keys[pygame.K_LEFT]: self.cool = 0; return self.protect()
+            elif keys[pygame.K_d]: self.cool = math.floor(150/self.velocidad); return self.atacar(oponente)
+            elif keys[pygame.K_a]: self.cool = 0; return self.protect()
+            elif keys[pygame.K_s]: self.cool = math.floor(400/self.velocidad); return self.boost() 
             elif keys[pygame.K_SPACE]: self.cool = math.floor(200/self.velocidad); return self.combo(oponente)
-            elif keys[pygame.K_DOWN]: self.cool = math.floor(400/self.velocidad); return self.boost() 
             else: self.cool = 0;return False
         else: self.cool = 0;return False
 
@@ -270,25 +270,25 @@ Bolsa:
         else: self.velx = 0
 
 personajes = [
-    personaje("Alfonse", 160, 2, 5, 17,[
-        item(cantidad=4),
+    personaje("Alfonse", 400, 2, 5, 17,[
+        item(cantidad=4,img="/te.png"),
         item(nombre="piedra filosofal",cantidad=1,efectos=["hp","vel","atk","def"],valores=[25,5,5,5],img="/piedra_filosofal.png")
         ],"Alfonse/"),
-    personaje("Shrek", 200, 1, 4, 15,[
-        item(),
+    personaje("Shrek", 440, 1, 4, 15,[
+        item(img="/te.png"),
         item(nombre="cebolla", cantidad=2,efectos=["hp","def"],valores=[30,7],img="/cebolla.png"),
         item(nombre="caramelo",cantidad=2,efectos=["vel","atk","hp"],valores=[2,1,-5],img="/caramelo.png")
         ],"Shrek/"),
-    personaje("Pablo",100,1,2,18,[
+    personaje("Pablo",200,1,2,18,[
         item(cantidad=9),
-        item("imaginacion",1,efectos=["hp","atk","def","vel"],valores=[50,50,50,50]),
+        item("imaginacion",1,efectos=["hp","atk","def","vel"],valores=[50,50,50,50],img="/imaginacion.png"),
         ],"Pablo/"),
-    personaje("Kong",300,4,5,9,[
-        item(cantidad=1),
+    personaje("Kong",600,4,5,9,[
+        item(cantidad=1,img="/te.png"),
         item("Dawn",1,efectos=["atk","def","vel"],valores=[3,4,2],img="/dawn.png")
         ],"Kong/"),
-    personaje("Maka",150,2,3,17,[
-        item(),
+    personaje("Maka",330,2,3,17,[
+        item(img="/te.png"),
         item("libro",2,efectos=["atk"],valores=[2],img="/libro.png"),
         item("locura",2,efectos=["hp","atk","def"],valores=[-35,7,7],img="/locura.png"),
         item("Soul", 1,efectos=["hp","atk","def","pnt"],valores=[20,4,5,1],img="/soul.png")

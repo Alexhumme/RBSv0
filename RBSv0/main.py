@@ -46,7 +46,7 @@ class ghost_msg:
         self.y = (random.randint(85,115)/100)*datos[3]
         self.alpha = 255
         self.dur = 800
-        self.msg_text = pygame.font.Font(None,30).render(self.mensaje,False,self.color)
+        self.msg_text = pygame.font.Font(fStyle,30).render(self.mensaje,False,self.color)
         self.msg_rect = self.msg_text.get_rect(center=(self.x+100,self.y))
     def dibujar(self):
         self.msg_text.set_alpha(255-(self.dur*-1))
