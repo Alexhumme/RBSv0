@@ -188,7 +188,7 @@ def pageSelect(personajes:list):
         
         fuente = pygame.font.Font(fStyle,25)
         info_p2_n = fuente.render(personajesL[1].nombre,False,"White")
-        info_p2.blit(info_p_n,((info_p2_rect.width/2)-info_p2_n.get_width()/2,10))
+        info_p2.blit(info_p2_n,((info_p2_rect.width/2)-info_p2_n.get_width()/2,10))
         
         ventana.blit(info_p2,info_p2_rect)
         sltd = True
