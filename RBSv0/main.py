@@ -9,8 +9,10 @@ ventanaC = [0,0,0]
 fps = 60 
 crx=150
 IMGS = "assets/imgs/"
+rPersonajes = copy.copy(personajes.personajes)
 personajesL = [False,False]
 sltd = False
+saludes = [1,1]
 # ejecutando ventana
 pygame.init()
 ventana = pygame.display.set_mode((ventanaW,ventanaH))
@@ -57,8 +59,8 @@ class ghost_msg:
             self.dibujar()
 
 
-def navLabels(titulo="",color="black",tf=50,crx=crx): # posiciona el header y el footer
-    ventana.fill("#ff5733")
+def navLabels(titulo="",color="black",tf=50,crx=crx, bgC = "#ff5733"): # posiciona el header y el footer
+    if bgC: ventana.fill(bgC)
     header = pygame.Surface((700,100))
     header.fill(color)
     fuente = pygame.font.Font(fStyle,tf)
@@ -93,8 +95,6 @@ def btnNext(texto,dir,x,y):
 
     return dir
     
-
-
 # paginas
 
 def pageHome():
@@ -106,8 +106,8 @@ def pageHome():
     fuente = pygame.font.Font(fStyle,50)
     ventana.blit(ttl,ttl_rect)
     salir = btnNext("iniciar",2,((ventanaW/2)),320)
-    if pygame.key.get_pressed()[pygame.K_DOWN]:
-        salir = 2
+    if pygame.key.get_pressed()[pygame.K_SPACE]:
+        page = 2
     return salir
     
 
@@ -117,13 +117,13 @@ def pageSelect(personajes:list):
     chars_r = []
     
     for char in personajes:
-        char_surf = pygame.Surface((70, 100)).convert()
+        char_surf = pygame.Surface((70, 100))
         char_rect = char_surf.get_rect(topleft=(150+(personajes.index(char)*80),120))
         char_surf.fill("white")
         fuente = pygame.font.Font(fStyle,17)
         name = fuente.render(char.nombre,False,"Black").convert()
         name_rect = name.get_rect(center = (char_surf.get_width()/2,70))
-        icon = pygame.image.load(IMGS+"personajes/"+char.imgRoot+"icon.png").convert()
+        icon = pygame.image.load(IMGS+"personajes/"+char.imgRoot+"icon.png").convert_alpha()
         char_surf.blit(icon,(10,10))
         char_surf.blit(name,name_rect)
         ventana.blit(char_surf,char_rect)
@@ -139,10 +139,10 @@ def pageSelect(personajes:list):
                 if char_r.collidepoint(mouse_pos): 
                     if not personajesL[0]:
                         print("jugador: "+personajes[chars_r.index(char_r)].nombre)
-                        personajesL[0] = personajes.pop(chars_r.index(char_r))
+                        personajesL[0] = copy.copy(personajes.pop(chars_r.index(char_r)))
                     elif not personajesL[1]:
                         print("oponente: "+personajes[chars_r.index(char_r)].nombre)
-                        personajesL[1] = personajes.pop(chars_r.index(char_r))
+                        personajesL[1] = copy.copy(personajes.pop(chars_r.index(char_r)))
     if personajesL[0]:
         info_p = pygame.Surface((150, 325))
         info_p_rect = info_p.get_rect(topleft=(0,100))
@@ -195,16 +195,15 @@ def pageSelect(personajes:list):
     if sltd: return btnNext("empezar",4,ventana.get_width()/2,400)
     else: return False
 
-def pageBatalla(personajes:list):
-    jugador = personajes[0]
-    oponente = personajes[1]
+def pageBatalla(chars:list):
+    jugador = chars[0]
+    oponente = chars[1]
 
     jugador.x = 100
     jugador.y = 160
     oponente.x = 400
     oponente.y = 160
-    #navLabels(" %s VS  %s " % (jugador.nombre, oponente.nombre),tf=35,crx=crx)
-    #navLabels(" %s VS  %s " % (jugador.cool, oponente.cool),tf=35,crx=crx)
+    
     navLabels(" ",tf=35,crx=crx)
     menu_items = pygame.image.load("assets/imgs/interfaces/menu-items.png").convert()
     fondo = pygame.image.load("assets/imgs/interfaces/escenario.png").convert()
@@ -215,6 +214,7 @@ def pageBatalla(personajes:list):
     oponente.mover(True)
     jugadorImg = pygame.image.load("assets/imgs/personajes/"+jugador.imgAct).convert_alpha()
     oponenteImg = pygame.transform.flip(pygame.image.load("assets/imgs/personajes/"+oponente.imgAct).convert_alpha(),True,False)
+    
     ventana.blit(jugadorImg,(jugador.x,jugador.y))
     ventana.blit(oponenteImg,(oponente.x,oponente.y))
 
@@ -237,7 +237,7 @@ def pageBatalla(personajes:list):
     for item in jugador.bolsa:
         ventana.blit(pygame.image.load("assets/imgs/items"+item.img).convert_alpha(),(35+(jugador.bolsa.index(item)+1)*70,25))
         fuente = pygame.font.Font(fStyle,17)
-        ventana.blit(fuente.render("x%s"%item.cantidad,False,"Black"),(80+(jugador.bolsa.index(item)+1)*70,55))
+        ventana.blit(fuente.render("%s"%item.cantidad,False,"White"),(85+(jugador.bolsa.index(item)+1)*70,55))
 
     puntosJ = pygame.transform.flip(pygame.Surface((113*(jugador.puntos/jugador.puntosMax),15)),True,False)
     puntosJ.fill("Blue")
@@ -259,13 +259,21 @@ def pageBatalla(personajes:list):
     if len(g_msgs) > 5: g_msgs.pop(0) #elimina primer mensaje fantasma para no desbordar la lista
 
     # movimiento de personaje
+    saludes[0] = jugador.salud
+    saludes[1] = oponente.salud
     
-    consid(jugador,oponente,False)
-    consid(oponente,jugador,True)
+    if saludes[0] <= 1 or saludes[1] <= 1: 
+        
+        return btnNext("continuar",5,ventana.get_width()/2,400)
+    else :
+        
+        consid(jugador,oponente,False)
+        consid(oponente,jugador,True)
+        for msg in g_msgs: msg.dibujar() #dibuja los mensajes 5 fantasma existentes
+        return False
     
-
-    for msg in g_msgs: msg.dibujar() #dibuja los mensajes fantasma
     
+    """
     fuente = pygame.font.Font(fStyle,20)
     coolJ = fuente.render("x Jugador: %s"%jugador.x,False,"Red")
     coolJ_rect = coolJ.get_rect(topleft = (10,10))
@@ -273,6 +281,18 @@ def pageBatalla(personajes:list):
     coolO = fuente.render("x Oponente: %s"%oponente.x,False,"Red")
     coolO_rect = coolO.get_rect(topleft = (10,30))
     ventana.blit(coolO,coolO_rect)
+    """
+def pageGameover(saludes):
+    personajesL[0] = False
+    personajesL[1] = False
+    navLabels("GAME OVER",crx=crx,bgC=False)
+    espacioGO = pygame.Surface((700, 325))
+    espacioGO.fill("Black")
+    espacioGO.set_alpha(10)
+    txt = fuente.render("GAME OVER",False,"Black")
+    ventana.blit(espacioGO,(0,100))
+    
+    return btnNext("reintentar",2,600,400)
     
 
 # bucle principal
@@ -300,9 +320,12 @@ while True:
     if(page==1):
         dirN = pageHome()
     elif(page==2):
-        dirN = pageSelect(personajes.personajes)
+        dirN = pageSelect(rPersonajes)
     elif(page==4):
-        pageBatalla(personajesL)
+        dirN = pageBatalla(personajesL)
+    elif(page==5):
+        rPersonajes = copy.copy(personajes.personajes)
+        dirN = pageGameover(saludes)
         #pageBatalla(copy.copy([personajes.personajes[1],personajes.personajes[0]]))
         #pageBatalla(copy.copy([random.choice(personajes.personajes),random.choice(personajes.personajes)]))
 

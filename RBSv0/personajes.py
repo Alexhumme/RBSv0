@@ -47,7 +47,7 @@ class personaje: # clase para la construccion de los personajes
         self.velx = 0
         self.alto = 0
         self.ancho = 280 
-        self.cool = 0
+        self.cool = 120
 
     def atacar(self, oponente, potencia=20):
         print("\n *** %s ataca..." % (self.nombre))
@@ -59,14 +59,15 @@ class personaje: # clase para la construccion de los personajes
         if (oponente.proteccion and multip < 1.10): # el ataqque es efectivo si el enemigo no se proteje
             print(" ... ataque inefectivo!❌ %s se ha %sprotegido💥%s" % (oponente.nombre,Fore.BLUE,Style.RESET_ALL))
             oponente.proteccion = False
-            return [["-0hp escudo","White",oponente.x,oponente.y]]
+            return [["-0hp","White",oponente.x,oponente.y]]
         else:
             oponente.velx = -20
-
+            color = "orange"
             if multip >= 1.10: #critico
                 print ("%s ... %s rompe las defenas de %s con un %s impacto critico❗%s"%(Fore.YELLOW,self.nombre,oponente.nombre,Style.BRIGHT,Style.RESET_ALL))
                 oponente.proteccion = False
                 crit = ["CRIT!","Red",oponente.x,oponente.y]
+                color = "red"
             else: crit = False
 
             print("%s ... ataque efectivo!💥%s"%(Fore.LIGHTGREEN_EX,Style.RESET_ALL))
@@ -83,7 +84,7 @@ class personaje: # clase para la construccion de los personajes
                     self.puntos = self.puntosMax
             else: pnt = False
             
-            return[["-%shp"%(dagno),"Orange",oponente.x,oponente.y],pnt,crit] #devolucion de mensajes
+            return[["-%shp"%(dagno),color,oponente.x,oponente.y],pnt,crit] #devolucion de mensajes
         
     def desc(self): # para obtener la info de un personaje
         desc = """
@@ -235,8 +236,12 @@ Bolsa:
                 opc = ["1", "1", "1", "1","2", "2", "3", "4"]
             else:
                 opc = ["1", "1", "2"]
-            if self.salud<=self.saludMax*3/4: # si tiene menos de 3 cuartos de su salud maxima, podra intentar curarse
+            if self.salud <= self.saludMax*3/4: # si tiene menos de 3 cuartos de su salud maxima, podra intentar curarse
                 opc.append("5")
+            if self.salud <= self.saludMax/4:
+                opc.append("2")
+                opc.append("2")
+
             sel = random.choice(opc)  # la accion es aleatoria
             if sel == "1": return self.atacar(oponente)
             elif sel == "2": return self.protect()
@@ -292,5 +297,8 @@ personajes = [
         item("libro",2,efectos=["atk"],valores=[2],img="/libro.png"),
         item("locura",2,efectos=["hp","atk","def"],valores=[-35,7,7],img="/locura.png"),
         item("Soul", 1,efectos=["hp","atk","def","pnt"],valores=[20,4,5,1],img="/soul.png")
-        ],"Maka/")
+        ],"Maka/"),
+    personaje("Godzilla",700,5,5,7,[
+        item(),
+        ]),
 ]
