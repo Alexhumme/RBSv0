@@ -4,7 +4,7 @@ from colorama import init,Fore,Style
 
 class item: # items que un personaje puede usar
     # el item por defecto es un té
-    def __init__(self,nombre="item desconocido", cantidad=3, dialogo=("\n --- té refrescante que cura 35hp🍵"), efectos=["hp"], valores=[35],img="/desconocido.png",consumible=True):
+    def __init__(self,nombre="item desconocido", cantidad=3, dialogo=("\n --- té refrescante que cura 35hp🍵"), efectos=["hp"], valores=[70],img="/desconocido.png",consumible=True,cool=300):
         self.id = " "
         self.usuario = " "
         self.nombre = nombre
@@ -16,6 +16,7 @@ class item: # items que un personaje puede usar
         self.consumible = consumible
         self.usando = False
         self.able = True
+        self.cool = cool
     def usar(self):
         if not self.usando and self.able:
             print("  ... %s usa %s %s! %s"%(self.usuario,Fore.YELLOW,self.nombre,Style.RESET_ALL))
@@ -28,6 +29,7 @@ class item: # items que un personaje puede usar
                 print(textE+Style.RESET_ALL)
             if self.consumible: 
                 self.cantidad-=1
+                if self.cantidad <= 0: self.able = False
             else: self.usando = True
             return [self.efectos,self.valores,colores]
         else: return [["none"],[0],["White"]]
@@ -58,7 +60,7 @@ class personaje: # clase para la construccion de los personajes
         self.alto = 0
         self.ancho = 280 
         self.cool = 120
-        self.hcool = 0
+        self.cool_h = 0
 
     def atacar(self, oponente, potencia=20):
         print("\n *** %s ataca..." % (self.nombre))
@@ -183,9 +185,11 @@ Bolsa:
                 else: return True
             else: # seleccion aleatoria, pude ser cualquer cosa menos cancelar.
                 sel = random.choice(self.bolsa)
-            if not sel.usando:
-                if sel.consumible: 
-                    self.cool = 10
+
+            if not sel.usando and sel.able: # si no esta usando a este item y su cantidad es mayor a 0
+                if sel.consumible: # si el item seleccionado es consumible
+                    if self.cool_h > 1: return [False] # si aun se esta enfriendo, devuelve false
+                    self.cool_h = sel.cool # sino, empieza el enfriamiento
                 else:
                     self.ataque = self.ataque_base
                     self.defensa = self.defensa_base
@@ -317,7 +321,8 @@ Bolsa:
 personajes = [
     personaje("Alfonse", 400, 2, 5, 17,[
         item("té",4,img="/te.png"),
-        item("piedra filosofal",1,efectos=["hp","vel","atk","def"],valores=[25,5,5,5],img="/piedra_filosofal.png")
+        item("tiza",1,"usada para hacer cirulos",efectos=["atk","vel"],valores=[2,-3],consumible=False),
+        #item("piedra filosofal",1,efectos=["hp","vel","atk","def"],valores=[25,5,5,5],img="/piedra_filosofal.png")
         ],"Alfonse/"),
     personaje("Shrek", 440, 1, 4, 15,[
         item("té",img="/te.png"),
@@ -339,7 +344,7 @@ personajes = [
         item("locura",2,efectos=["hp","atk","def"],valores=[-35,7,7],img="/locura.png"),
         item("Soul", 1,efectos=["hp","atk","def","pnt"],valores=[20,4,5,1],consumible=False,img="/soul.png")
         ],"Maka/"),
-    personaje("Godzilla",700,7,5,7,[
+    personaje("Godzilla",1400,7,5,7,[
         item(),
         ]),
 ]

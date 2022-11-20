@@ -17,6 +17,8 @@ b_iniciada = [False]
 
 # ejecutando ventana
 pygame.init()
+pygame_icon = pygame.image.load(f"{IMGS}items/hacha.png")
+pygame.display.set_icon(pygame_icon)
 ventana = pygame.display.set_mode((ventanaW,ventanaH))
 pygame.display.set_caption('RBSv0.0')
 
@@ -288,6 +290,7 @@ def pageBatalla(chars:list):
                     if msg: # genera un mensaje fantasma
                         g_msgs.append(ghost_msg(msg))
         else: jugador.cool -= 1 # sino reducele el cooldown
+        if jugador.cool_h > 0: jugador.cool_h -= 1
     
     if len(g_msgs) > 5: g_msgs.pop(0) #elimina primer mensaje fantasma para no desbordar la lista
 
@@ -298,6 +301,23 @@ def pageBatalla(chars:list):
     
     for msg in g_msgs: msg.dibujar() #dibuja los mensajes 5 fantasma existentes
     
+    if jugador.cool_h > 1:
+        cool_h_j = pygame.Surface((30, 30)) #mostrar el cooldown de los items
+        cool_h_j_rect = cool_h_j.get_rect(topleft = (jugador.x,jugador.y))
+        pygame.draw.arc(ventana, "blue", cool_h_j_rect,0,jugador.cool_h/50, width=5)
+    if oponente.cool_h > 1:
+        cool_h_o = pygame.Surface((30, 30)) #mostrar el cooldown de los items
+        cool_h_o_rect = cool_h_o.get_rect(topleft = (oponente.x+200,oponente.y))
+        pygame.draw.arc(ventana, "blue", cool_h_o_rect,0,oponente.cool_h/50, width=5)
+
+    fuente = pygame.font.Font(fStyle,20)
+    coolJ = fuente.render("cool_h Jugador: %s"%(jugador.cool_h/60),False,"Red")
+    coolJ_rect = coolJ.get_rect(topleft = (10,10))
+    ventana.blit(coolJ,coolJ_rect)
+    coolO = fuente.render("cool_h Oponente: %s"%(oponente.cool_h/60),False,"Red")
+    coolO_rect = coolO.get_rect(topleft = (10,30))
+    ventana.blit(coolO,coolO_rect)
+
     if saludes[0] <= 1 or saludes[1] <= 1: # si no esta vivo alguno de los dos, muestra el boton de continuar
         for personaje in chars: 
             for item in personaje.bolsa: item.usando = False
@@ -308,15 +328,7 @@ def pageBatalla(chars:list):
         consid(oponente,jugador,True)
         return False
     
-    """
-    fuente = pygame.font.Font(fStyle,20)
-    coolJ = fuente.render("x Jugador: %s"%jugador.x,False,"Red")
-    coolJ_rect = coolJ.get_rect(topleft = (10,10))
-    ventana.blit(coolJ,coolJ_rect)
-    coolO = fuente.render("x Oponente: %s"%oponente.x,False,"Red")
-    coolO_rect = coolO.get_rect(topleft = (10,30))
-    ventana.blit(coolO,coolO_rect)
-    """
+    
 def pageGameover(saludes):
     g_msgs.clear()
     b_iniciada[0] = False
