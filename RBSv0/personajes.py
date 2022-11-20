@@ -4,7 +4,7 @@ from colorama import init,Fore,Style
 
 class item: # items que un personaje puede usar
     # el item por defecto es un té
-    def __init__(self,nombre="té🍵", cantidad=3, dialogo=("\n --- té refrescante que cura 35hp🍵"), efectos=["hp"], valores=[35],img="/desconocido.png"):
+    def __init__(self,nombre="item desconocido", cantidad=3, dialogo=("\n --- té refrescante que cura 35hp🍵"), efectos=["hp"], valores=[35],img="/desconocido.png",consumible=True):
         self.id = " "
         self.usuario = " "
         self.nombre = nombre
@@ -13,17 +13,24 @@ class item: # items que un personaje puede usar
         self.efectos = efectos
         self.valores = valores
         self.img = img
+        self.consumible = consumible
+        self.usando = False
+        self.able = True
     def usar(self):
-        print("  ... %s uso %s %s! %s"%(self.usuario,Fore.YELLOW,self.nombre,Style.RESET_ALL))
-        colores = []
-        for efect in self.efectos:
-            textE = ("     ... %s: "%efect)
-            if self.valores[self.efectos.index(efect)] >= 0: textE += Fore.GREEN+" +"; colores.append("Green")
-            else: textE += Fore.RED; colores.append("Red")
-            textE+= str(self.valores[self.efectos.index(efect)])
-            print(textE+Style.RESET_ALL)
-        self.cantidad-=1
-        return [self.efectos,self.valores,colores]
+        if not self.usando and self.able:
+            print("  ... %s usa %s %s! %s"%(self.usuario,Fore.YELLOW,self.nombre,Style.RESET_ALL))
+            colores = []
+            for efect in self.efectos:
+                textE = ("     ... %s: "%efect)
+                if self.valores[self.efectos.index(efect)] >= 0: textE += Fore.GREEN+" +"; colores.append("Green")
+                else: textE += Fore.RED; colores.append("Red")
+                textE+= str(self.valores[self.efectos.index(efect)])
+                print(textE+Style.RESET_ALL)
+            if self.consumible: 
+                self.cantidad-=1
+            else: self.usando = True
+            return [self.efectos,self.valores,colores]
+        else: return [["none"],[0],["White"]]
 
 class personaje: # clase para la construccion de los personajes
 
@@ -35,6 +42,9 @@ class personaje: # clase para la construccion de los personajes
         self.ataque = ataque
         self.defensa = defensa
         self.velocidad = velocidad
+        self.ataque_base = ataque
+        self.defensa_base = defensa
+        self.velocidad_base = velocidad
         self.bolsa = bolsa
         self.proteccion = False # escudo
         self.puntosMax = 100
@@ -48,6 +58,7 @@ class personaje: # clase para la construccion de los personajes
         self.alto = 0
         self.ancho = 280 
         self.cool = 120
+        self.hcool = 0
 
     def atacar(self, oponente, potencia=20):
         print("\n *** %s ataca..." % (self.nombre))
@@ -87,15 +98,18 @@ class personaje: # clase para la construccion de los personajes
             return[["-%shp"%(dagno),color,oponente.x,oponente.y],pnt,crit] #devolucion de mensajes
         
     def desc(self): # para obtener la info de un personaje
-        desc = """
-hp: %s
-Ataque: %s 
-Defensa: %s
-Velocidad: %s
-Proteccion: %s
-Puntos: %s
+        desc = f"""
+hp: {self.salud}
+Ataque base: {self.ataque_base}
+Ataque: {self.ataque}
+Defensa base: {self.defensa_base}
+Defensa: {self.defensa}
+Velocidad base: {self.velocidad_base}
+Velocidad: {self.velocidad}
+Proteccion: {self.proteccion}
+Puntos: {self.puntos}
 Bolsa: 
-"""% (self.salud, self.ataque, self.defensa, self.velocidad, self.proteccion, self.puntos)
+"""
         for item in self.bolsa:
             if item != "cancelar": desc+="  -- %s. %s x%s \n"%(self.bolsa.index(item),item.nombre,item.cantidad)
         print("\n*** Descripcion de %s ***" % (self.nombre))    
@@ -168,27 +182,46 @@ Bolsa:
                 elif keys[pygame.K_4] and len(self.bolsa)>3: sel = self.bolsa[3]
                 else: return True
             else: # seleccion aleatoria, pude ser cualquer cosa menos cancelar.
-                sel = "cancelar"
-                while sel == "cancelar": sel = random.choice(self.bolsa)
-            sel.usuario = self.nombre
-            uso = sel.usar()
-            resultado = [False]
-            for efect in uso[0]:
-                if efect == "hp":
-                    self.salud += uso[1][uso[0].index(efect)]
-                    if self.salud > self.saludMax: self.salud = self.saludMax # si su salud actual es mayor al maximo, que se iguales 
-                elif efect == "atk":
-                    self.ataque += uso[1][uso[0].index(efect)]
-                elif efect == "def":
-                    self.defensa += uso[1][uso[0].index(efect)]
-                elif efect == "vel":
-                    self.velocidad += uso[1][uso[0].index(efect)]
-                elif efect == "pnt":
-                    self.puntos += uso[1][uso[0].index(efect)]
-                resultado.append(["+ %s %s"%(uso[1][uso[0].index(efect)],efect),uso[2][uso[0].index(efect)],self.x,self.y])
-            if sel.cantidad <= 0: self.bolsa.remove(sel)
-            resultado.append(["***%s usa  %s ***"%(self.nombre,sel.nombre),"yellow",self.x,self.y])
-            return resultado
+                sel = random.choice(self.bolsa)
+            if not sel.usando:
+                if sel.consumible: 
+                    self.cool = 10
+                else:
+                    self.ataque = self.ataque_base
+                    self.defensa = self.defensa_base
+                    self.defensa = self.ataque_base
+                    for item in self.bolsa: item.usando = False
+                
+                sel.usuario = self.nombre
+                
+                uso = sel.usar()
+                resultado = [False]
+                for efect in uso[0]:
+                    if efect == "hp":
+                        self.salud += uso[1][uso[0].index(efect)]
+                        if self.salud > self.saludMax: self.salud = self.saludMax # si su salud actual es mayor al maximo, que se iguales 
+                    elif efect == "atk":
+                        if sel.consumible: 
+                            self.ataque_base += uso[1][uso[0].index(efect)]
+                            self.ataque = self.ataque_base
+                        else: self.ataque += uso[1][uso[0].index(efect)]
+                    elif efect == "def":
+                        if sel.consumible: 
+                            self.defensa_base += uso[1][uso[0].index(efect)]
+                            self.defensa = self.defensa_base
+                        else: self.defensa += uso[1][uso[0].index(efect)]
+                    elif efect == "vel":
+                        if sel.consumible: 
+                            self.velocidad_base += uso[1][uso[0].index(efect)]
+                            self.velocidad = self.velocidad_base
+                        else: self.velocidad += uso[1][uso[0].index(efect)]
+                    elif efect == "pnt":
+                        self.puntos += uso[1][uso[0].index(efect)]
+                    resultado.append(["+ %s %s"%(uso[1][uso[0].index(efect)],efect),uso[2][uso[0].index(efect)],self.x,self.y])
+                if sel.cantidad <= 0: sel.able = False
+                resultado.append(["***%s usa  %s ***"%(self.nombre,sel.nombre),"yellow",self.x,self.y])
+                return resultado
+            else: return False
         else: 
             return [["*** ❌ %s no tiene objetos! ❌ ***" % (self.nombre),"gray",self.x,self.y]]
 
@@ -229,39 +262,46 @@ Bolsa:
         opc=["1"]
         
         if self.vivo():
-            self.cool = math.floor(300/self.velocidad)
+            
             if self.puntos >= 70:
                 opc = ["1", "1", "1", "1", "1", "2", "3", "4", "4"]
             elif self.puntos >= 35:
                 opc = ["1", "1", "1", "1","2", "2", "3", "4"]
             else:
                 opc = ["1", "1", "2"]
-            if self.salud <= self.saludMax*3/4: # si tiene menos de 3 cuartos de su salud maxima, podra intentar curarse
+            if self.salud <= self.saludMax*3/4 and len(self.bolsa) > 0: # si tiene menos de 3 cuartos de su salud maxima, podra intentar curarse
                 opc.append("5")
             if self.salud <= self.saludMax/4:
                 opc.append("2")
                 opc.append("2")
 
             sel = random.choice(opc)  # la accion es aleatoria
-            if sel == "1": return self.atacar(oponente)
-            elif sel == "2": return self.protect()
-            elif sel == "3": return self.combo(oponente)
-            elif sel == "4": return self.boost()
-            elif sel == "5": return self.uBolsa(True)
+            
+            if   sel == "1": cool = 150; accion = self.atacar(oponente)
+            elif sel == "2": cool = 150; accion = self.protect()
+            elif sel == "3": cool = 200; accion = self.combo(oponente)
+            elif sel == "4": cool = 250; accion = self.boost()
+            elif sel == "5": cool = 400; accion = self.uBolsa(True)
 
+            self.cool = math.floor(cool/(self.velocidad+1))
+            return accion
     def act(self, oponente):
         if self.vivo():
  
             keys = pygame.key.get_pressed() 
-            self.cool = math.floor(300/self.velocidad)
+            
             if keys[pygame.K_1] or keys[pygame.K_2] or keys[pygame.K_3] or keys[pygame.K_4]: return self.uBolsa(False)
-            if keys[pygame.K_z]: self.desc(); return False
-            elif keys[pygame.K_x]: oponente.desc(); return False
-            elif keys[pygame.K_d]: self.cool = math.floor(150/self.velocidad); return self.atacar(oponente)
-            elif keys[pygame.K_a]: self.cool = 0; return self.protect()
-            elif keys[pygame.K_s]: self.cool = math.floor(400/self.velocidad); return self.boost() 
-            elif keys[pygame.K_SPACE]: self.cool = math.floor(200/self.velocidad); return self.combo(oponente)
-            else: self.cool = 0;return False
+            if keys[pygame.K_z]:cool = 0; self.desc(); accion =  False
+            elif keys[pygame.K_x]: cool = 0; oponente.desc(); accion =  False
+            elif keys[pygame.K_d]: cool = 150; accion = self.atacar(oponente)
+            elif keys[pygame.K_a]: cool = 0; accion =  self.protect()
+            elif keys[pygame.K_s]: cool = 400; accion = self.boost() 
+            elif keys[pygame.K_SPACE]: cool = 200; accion = self.combo(oponente)
+            else: cool = 0; self.proteccion = False; accion = False
+            
+            self.cool = math.floor(cool/(self.velocidad+1))
+            return accion
+
         else: self.cool = 0;return False
 
     def vivo(self):
@@ -276,29 +316,30 @@ Bolsa:
 
 personajes = [
     personaje("Alfonse", 400, 2, 5, 17,[
-        item(cantidad=4,img="/te.png"),
-        item(nombre="piedra filosofal",cantidad=1,efectos=["hp","vel","atk","def"],valores=[25,5,5,5],img="/piedra_filosofal.png")
+        item("té",4,img="/te.png"),
+        item("piedra filosofal",1,efectos=["hp","vel","atk","def"],valores=[25,5,5,5],img="/piedra_filosofal.png")
         ],"Alfonse/"),
     personaje("Shrek", 440, 1, 4, 15,[
-        item(img="/te.png"),
-        item(nombre="cebolla", cantidad=2,efectos=["hp","def"],valores=[30,7],img="/cebolla.png"),
-        item(nombre="caramelo",cantidad=2,efectos=["vel","atk","hp"],valores=[2,1,-5],img="/caramelo.png")
+        item("té",img="/te.png"),
+        item("cebolla",2,efectos=["hp","def"],valores=[30,7],img="/cebolla.png"),
+        item("caramelo",2,efectos=["vel","atk","hp"],valores=[2,1,-5],img="/caramelo.png")
         ],"Shrek/"),
     personaje("Pablo",200,1,2,18,[
-        item(cantidad=9),
-        item("imaginacion",1,efectos=["hp","atk","def","vel"],valores=[50,50,50,50],img="/imaginacion.png"),
+        item("té",9,img="/te.png"),
+        item("imaginacion",1,efectos=["hp","atk","def","vel"],valores=[50,50,50,50],consumible=False,img="/imaginacion.png"),
         ],"Pablo/"),
     personaje("Kong",600,4,5,9,[
-        item(cantidad=1,img="/te.png"),
+        item("te",1,img="/te.png"),
+        item("hacha",1,efectos=["atk","vel"],valores=[5,-3],consumible=False,img="/hacha.png"),
         item("Dawn",1,efectos=["atk","def","vel"],valores=[3,4,2],img="/dawn.png")
         ],"Kong/"),
     personaje("Maka",330,2,3,17,[
-        item(img="/te.png"),
-        item("libro",2,efectos=["atk"],valores=[2],img="/libro.png"),
+        item("té",img="/te.png"),
+        item("libro",1,efectos=["atk"],valores=[2],consumible=False,img="/libro.png"),
         item("locura",2,efectos=["hp","atk","def"],valores=[-35,7,7],img="/locura.png"),
-        item("Soul", 1,efectos=["hp","atk","def","pnt"],valores=[20,4,5,1],img="/soul.png")
+        item("Soul", 1,efectos=["hp","atk","def","pnt"],valores=[20,4,5,1],consumible=False,img="/soul.png")
         ],"Maka/"),
-    personaje("Godzilla",700,5,5,7,[
+    personaje("Godzilla",700,7,5,7,[
         item(),
         ]),
 ]

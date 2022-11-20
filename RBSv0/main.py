@@ -11,8 +11,10 @@ crx=150
 IMGS = "assets/imgs/"
 rPersonajes = copy.copy(personajes.personajes)
 personajesL = [False,False]
-sltd = False
+sltd = False # pregunta si se han seleccionado ambos personajes
 saludes = [1,1]
+b_iniciada = [False]
+
 # ejecutando ventana
 pygame.init()
 ventana = pygame.display.set_mode((ventanaW,ventanaH))
@@ -35,11 +37,14 @@ btnPausa = pygame.image.load("assets/imgs/interfaces/boton-de-pausa.png").conver
 btnConfig = pygame.image.load("assets/imgs/interfaces/configuraciones.png").convert()
 btnInfo = pygame.image.load("assets/imgs/interfaces/informacion.png").convert()
 btnN = pygame.Surface((100,40))
-btnPausaRct = btnPausa.get_rect(topleft = (600,15))
-btnConfigRct= btnConfig.get_rect(topleft = (500,15))
-btnInfoRct = btnInfo.get_rect(topleft = (400,15))
+btnPausaRct = btnPausa.get_rect(center = (650,50))
+btnConfigRct= btnConfig.get_rect(center = (550,50))
+btnInfoRct = btnInfo.get_rect(center = (450,50))
 btnN_rect = btnN.get_rect(topleft=(0,0))
+txt_pausa = fuente.render("PAUSA", True, "Black")
+txt_pausa_rect = txt_pausa.get_rect(center = (350,250))
 g_msgs = []
+
 class ghost_msg:
     def __init__(self,datos:list):
         self.mensaje = datos[0]
@@ -94,7 +99,18 @@ def btnNext(texto,dir,x,y):
     ventana.blit(btnN,btnN_rect)
 
     return dir
-    
+
+def conteo_reg(esp):
+    if esp > 0 and not b_iniciada[0]:
+        if esp > 90: fal = 3
+        elif esp > 60: fal = 2
+        elif esp > 30: fal = 1
+        elif esp > 1: fal = "peleen!"
+        else: b_iniciada[0] = True
+        if esp > 1:
+            txt = fuente.render(f"{fal}",False,"White")
+            txt_rect = txt.get_rect(center=(ventanaW/2,ventanaH/2))
+            ventana.blit(txt,txt_rect)
 # paginas
 
 def pageHome():
@@ -117,11 +133,19 @@ def pageSelect(personajes:list):
     chars_r = []
     
     for char in personajes:
+        if personajes.index(char) <=4: 
+            px = 0
+            fila = 120
+        else: 
+            px = 400
+            fila = 230
+
         char_surf = pygame.Surface((70, 100))
-        char_rect = char_surf.get_rect(topleft=(150+(personajes.index(char)*80),120))
+        char_rect = char_surf.get_rect(topleft=(150+(personajes.index(char)*80)-px,fila))
         char_surf.fill("white")
         fuente = pygame.font.Font(fStyle,17)
         name = fuente.render(char.nombre,False,"Black").convert()
+        
         name_rect = name.get_rect(center = (char_surf.get_width()/2,70))
         icon = pygame.image.load(IMGS+"personajes/"+char.imgRoot+"icon.png").convert_alpha()
         char_surf.blit(icon,(10,10))
@@ -209,11 +233,13 @@ def pageBatalla(chars:list):
     fondo = pygame.image.load("assets/imgs/interfaces/escenario.png").convert()
     ventana.blit(menu_items,(0,0))
     ventana.blit(fondo,(0,100))
-    
+
+    # movimiento de personaje
     jugador.mover()
     oponente.mover(True)
-    jugadorImg = pygame.image.load("assets/imgs/personajes/"+jugador.imgAct).convert_alpha()
-    oponenteImg = pygame.transform.flip(pygame.image.load("assets/imgs/personajes/"+oponente.imgAct).convert_alpha(),True,False)
+
+    jugadorImg = pygame.image.load(f"{IMGS}personajes/{jugador.imgAct}").convert_alpha()
+    oponenteImg = pygame.transform.flip(pygame.image.load(f"{IMGS}personajes/{oponente.imgAct}").convert_alpha(),True,False)
     
     ventana.blit(jugadorImg,(jugador.x,jugador.y))
     ventana.blit(oponenteImg,(oponente.x,oponente.y))
@@ -234,10 +260,17 @@ def pageBatalla(chars:list):
     ventana.blit(saludJ,(80,131))
     ventana.blit(saludO,(397,131))
 
+    # mostrar los items del jugador
     for item in jugador.bolsa:
-        ventana.blit(pygame.image.load("assets/imgs/items"+item.img).convert_alpha(),(35+(jugador.bolsa.index(item)+1)*70,25))
-        fuente = pygame.font.Font(fStyle,17)
-        ventana.blit(fuente.render("%s"%item.cantidad,False,"White"),(85+(jugador.bolsa.index(item)+1)*70,55))
+        item_surf = pygame.Surface((50,50), pygame.SRCALPHA,32)
+        pygame.draw.circle(item_surf, "#28484d", (25,25), 25)
+        if item.usando: pygame.draw.circle(item_surf, "Yellow", (25,25), 25,width = 2)
+        else: pygame.draw.circle(item_surf, "white", (25,25), 25,width = 1)
+        if item.cantidad > 0:
+            item_surf.blit(pygame.image.load(f"{IMGS}/items"+item.img).convert_alpha(),(0,0))
+            fuente = pygame.font.Font(fStyle,17)
+            if item.consumible: ventana.blit(fuente.render(f"{item.cantidad}",False,"White"),(85+(jugador.bolsa.index(item)+1)*70,55))
+        ventana.blit(item_surf,(35+(jugador.bolsa.index(item)+1)*70,25))
 
     puntosJ = pygame.transform.flip(pygame.Surface((113*(jugador.puntos/jugador.puntosMax),15)),True,False)
     puntosJ.fill("Blue")
@@ -258,20 +291,22 @@ def pageBatalla(chars:list):
     
     if len(g_msgs) > 5: g_msgs.pop(0) #elimina primer mensaje fantasma para no desbordar la lista
 
-    # movimiento de personaje
     saludes[0] = jugador.salud
-    saludes[1] = oponente.salud
+    saludes[1] = oponente.salud    
     
-    if saludes[0] <= 1 or saludes[1] <= 1: 
-        
+    conteo_reg(jugador.cool) # conteo regresivo
+    
+    for msg in g_msgs: msg.dibujar() #dibuja los mensajes 5 fantasma existentes
+    
+    if saludes[0] <= 1 or saludes[1] <= 1: # si no esta vivo alguno de los dos, muestra el boton de continuar
+        for personaje in chars: 
+            for item in personaje.bolsa: item.usando = False
+
         return btnNext("continuar",5,ventana.get_width()/2,400)
-    else :
-        
+    else : # pero si lo estan ambos, que actuen
         consid(jugador,oponente,False)
         consid(oponente,jugador,True)
-        for msg in g_msgs: msg.dibujar() #dibuja los mensajes 5 fantasma existentes
         return False
-    
     
     """
     fuente = pygame.font.Font(fStyle,20)
@@ -283,13 +318,18 @@ def pageBatalla(chars:list):
     ventana.blit(coolO,coolO_rect)
     """
 def pageGameover(saludes):
+    g_msgs.clear()
+    b_iniciada[0] = False
     personajesL[0] = False
     personajesL[1] = False
     navLabels("GAME OVER",crx=crx,bgC=False)
     espacioGO = pygame.Surface((700, 325))
     espacioGO.fill("Black")
     espacioGO.set_alpha(10)
-    txt = fuente.render("GAME OVER",False,"Black")
+    if saludes[0]>1: txt = fuente.render("VICTORIA",False,"Green")
+    else: txt = fuente.render("DERROTA",False,"Red")
+    txt_rect = txt.get_rect(center = (350,162))
+    espacioGO.blit(txt,txt_rect)
     ventana.blit(espacioGO,(0,100))
     
     return btnNext("reintentar",2,600,400)
@@ -304,10 +344,11 @@ while True:
             pygame.quit()
             exit()
         if event.type == pygame.MOUSEBUTTONDOWN:# configurando la deteccion delos botones header
-            print(page)
+
             mouse_pos = pygame.mouse.get_pos()
             
             if btnPausaRct.collidepoint(mouse_pos):
+                pausa = not pausa
                 print("pausa")
             elif btnConfigRct.collidepoint(mouse_pos):
                 print("Configuracion")
@@ -316,22 +357,22 @@ while True:
             elif btnN_rect.collidepoint(mouse_pos):
                 print("siguente")
                 page = dirN
+    if not pausa:
 
-    if(page==1):
-        dirN = pageHome()
-    elif(page==2):
-        dirN = pageSelect(rPersonajes)
-    elif(page==4):
-        dirN = pageBatalla(personajesL)
-    elif(page==5):
-        rPersonajes = copy.copy(personajes.personajes)
-        dirN = pageGameover(saludes)
-        #pageBatalla(copy.copy([personajes.personajes[1],personajes.personajes[0]]))
-        #pageBatalla(copy.copy([random.choice(personajes.personajes),random.choice(personajes.personajes)]))
+        if(page==1):
+            dirN = pageHome()
+        elif(page==2):
+            dirN = pageSelect(rPersonajes)
+        elif(page==4):
+            dirN = pageBatalla(personajesL)
+        elif(page==5):
+            rPersonajes = copy.copy(personajes.personajes)
+            dirN = pageGameover(saludes)
+            #pageBatalla(copy.copy([personajes.personajes[1],personajes.personajes[0]]))
+            #pageBatalla(copy.copy([random.choice(personajes.personajes),random.choice(personajes.personajes)]))
+        crx-=3
+        if crx < -370: crx = ventanaW
+    else:  ventana.blit(txt_pausa,txt_pausa_rect) # que se muestre la pantallas de pausa
 
-
-    crx-=3
-    if crx < -370:
-        crx = ventanaW
     pygame.display.update()
     clock.tick(fps) # indica que el bucle qhile no puede reproducirse mas rapido que la cantidad indicada de frames
