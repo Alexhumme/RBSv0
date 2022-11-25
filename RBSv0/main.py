@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import random, personajes, pygame, copy, time
 from sys import exit
 
