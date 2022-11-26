@@ -48,9 +48,10 @@ class personaje: # clase para la construccion de los personajes
         self.defensa_base = defensa
         self.velocidad_base = velocidad
         self.bolsa = bolsa
+        self.inventario = []
         self.proteccion = False # escudo
         self.puntosMax = 100
-        self.puntos = 50 # energia, una mecanica de intercambio
+        self.puntos = 50 # energia, una mecanica de intercambio 
         self.estado = "/stand.png"
         self.imgRoot = imgRoot 
         self.imgAct = imgRoot+self.estado
@@ -89,7 +90,7 @@ class personaje: # clase para la construccion de los personajes
             oponente.salud -= dagno
             
             if random.randint(0,10) >= 8: #puntos
-                pnts = random.randint(5,15)
+                pnts = random.randint(1,10)
                 self.puntos += pnts
                 print(" ... %s : %s+%s puntos%s" % (self.nombre,Fore.GREEN,pnts,Style.RESET_ALL))
                 pnt = ["+%sPnt"%pnts,"Blue",self.x,self.y]
@@ -294,7 +295,7 @@ Bolsa:
  
             keys = pygame.key.get_pressed() 
             
-            if keys[pygame.K_1] or keys[pygame.K_2] or keys[pygame.K_3] or keys[pygame.K_4]: return self.uBolsa(False)
+            
             if keys[pygame.K_z]:cool = 0; self.desc(); accion =  False
             elif keys[pygame.K_x]: cool = 0; oponente.desc(); accion =  False
             elif keys[pygame.K_d]: cool = 150; accion = self.atacar(oponente)
@@ -302,7 +303,8 @@ Bolsa:
             elif keys[pygame.K_s]: cool = 400; accion = self.boost() 
             elif keys[pygame.K_SPACE]: cool = 200; accion = self.combo(oponente)
             else: cool = 0; self.proteccion = False; accion = False
-            
+            if keys[pygame.K_1] or keys[pygame.K_2] or keys[pygame.K_3] or keys[pygame.K_4]: accion = self.uBolsa(False)
+
             self.cool = math.floor(cool/(self.velocidad+1))
             return accion
 
@@ -322,7 +324,7 @@ personajes = [
     personaje("Alfonse", 400, 2, 5, 17,[
         item("té",4,img="/te.png"),
         item("tiza",1,"usada para hacer cirulos",efectos=["atk","vel"],valores=[2,-3],consumible=False),
-        #item("piedra filosofal",1,efectos=["hp","vel","atk","def"],valores=[25,5,5,5],img="/piedra_filosofal.png")
+        item("piedra filosofal",1,efectos=["hp","vel","atk","def"],valores=[25,5,5,5],img="/piedra_filosofal.png")
         ],"Alfonse/"),
     personaje("Shrek", 440, 1, 4, 15,[
         item("té",img="/te.png"),
@@ -342,7 +344,8 @@ personajes = [
         item("té",img="/te.png"),
         item("libro",1,efectos=["atk"],valores=[2],consumible=False,img="/libro.png"),
         item("locura",2,efectos=["hp","atk","def"],valores=[-35,7,7],img="/locura.png"),
-        item("Soul", 1,efectos=["hp","atk","def","pnt"],valores=[20,4,5,1],consumible=False,img="/soul.png")
+        item("Soul", 1,efectos=["hp","atk","def","pnt"],valores=[20,4,5,1],consumible=False,img="/soul.png"),
+        item("hacha",1,efectos=["atk","vel"],valores=[5,-3],consumible=False,img="/hacha.png"),
         ],"Maka/"),
     personaje("Godzilla",1400,7,5,7,[
         item(),
