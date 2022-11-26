@@ -14,6 +14,14 @@ personajesL = [False,False]
 sltd = False # pregunta si se han seleccionado ambos personajes
 saludes = [1,1]
 b_iniciada = [False]
+colores = [
+    "black",
+    "#0f052d",
+    "#203671",
+    "#36868f",
+    "#5fc75d",
+    "white",
+]
 
 # ejecutando ventana
 pygame.init()
@@ -43,7 +51,7 @@ btnPausaRct = btnPausa.get_rect(center = (650,50))
 btnConfigRct= btnConfig.get_rect(center = (550,50))
 btnInfoRct = btnInfo.get_rect(center = (450,50))
 btnN_rect = btnN.get_rect(topleft=(0,0))
-txt_pausa = fuente.render("PAUSA", True, "Black")
+txt_pausa = fuente.render("PAUSA", True, colores[0])
 txt_pausa_rect = txt_pausa.get_rect(center = (350,250))
 g_msgs = []
 
@@ -66,12 +74,12 @@ class ghost_msg:
             self.dibujar()
 
 
-def navLabels(titulo="",color="black",tf=50,crx=crx, bgC = "#ff5733"): # posiciona el header y el footer
+def navLabels(titulo="",color="black",tf=50,crx=crx, bgC = colores[1]): # posiciona el header y el footer
     if bgC: ventana.fill(bgC)
     header = pygame.Surface((700,100))
     header.fill(color)
     fuente = pygame.font.Font(fStyle,tf)
-    txt = fuente.render(titulo, False, "White") #crear una superficie en texto(texto,suavisado,color)
+    txt = fuente.render(titulo, False,  colores[5]) #crear una superficie en texto(texto,suavisado,color)
     txt_rect = txt.get_rect(center=((txt.get_width()/2)+10,50))
     header.blit(btnPausa,btnPausaRct)
     header.blit(btnConfig,btnConfigRct)
@@ -94,7 +102,7 @@ def btnNext(texto,dir,x,y):
     btnN.fill("Blue")
     btnN_rect.center = (x,y)
     fuente = pygame.font.Font(None,20)
-    txt = fuente.render(texto,False,"White")
+    txt = fuente.render(texto,False,colores[5])
     txt_rect = txt.get_rect(center = (50,20))
     btnN.blit(txt,txt_rect)
 
@@ -110,7 +118,7 @@ def conteo_reg(esp):
         elif esp > 1: fal = "peleen!"
         else: b_iniciada[0] = True
         if esp > 1:
-            txt = fuente.render(f"{fal}",False,"White")
+            txt = fuente.render(f"{fal}",False,colores[5])
             txt_rect = txt.get_rect(center=(ventanaW/2,ventanaH/2))
             ventana.blit(txt,txt_rect)
 # paginas
@@ -119,7 +127,7 @@ def pageHome():
     navLabels("Home",crx=crx)
     
     fuente = pygame.font.Font("assets/font/8bitOperatorPlusSC-Bold.ttf",120)
-    ttl = fuente.render("RBSv0",False,"Black")
+    ttl = fuente.render("RBSv0",False,colores[0])
     ttl_rect = ttl.get_rect(center = (350,180))
     fuente = pygame.font.Font(fStyle,50)
     ventana.blit(ttl,ttl_rect)
@@ -133,7 +141,7 @@ def pageSelect(personajes:list):
     navLabels("Selecciona",crx=crx)
     sltd = False
     chars_r = []
-    
+    imgIconc = pygame.image.load(f"{IMGS}/interfaces/base_charIcon.png")
     for char in personajes:
         if personajes.index(char) <=4: 
             px = 0
@@ -143,10 +151,11 @@ def pageSelect(personajes:list):
             fila = 230
 
         char_surf = pygame.Surface((70, 100))
+        char_surf.fill(colores[1])
         char_rect = char_surf.get_rect(topleft=(150+(personajes.index(char)*80)-px,fila))
-        char_surf.fill("white")
+        char_surf.blit(imgIconc,(0,0))
         fuente = pygame.font.Font(fStyle,17)
-        name = fuente.render(char.nombre,False,"Black").convert()
+        name = fuente.render(char.nombre,False,colores[5]).convert()
         
         name_rect = name.get_rect(center = (char_surf.get_width()/2,70))
         icon = pygame.image.load(IMGS+"personajes/"+char.imgRoot+"icon.png").convert_alpha()
