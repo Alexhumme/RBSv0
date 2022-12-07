@@ -12,7 +12,7 @@ class item(): # items que un personaje puede usar
         self.dialogo = dialogo
         self.efectos = efectos
         self.valores = valores
-        self.img = img
+        self.img = pygame.image.load(f"assets/imgs/items"+img)
         self.consumible = consumible
         self.equible = equipable
         self.usando = False
@@ -62,6 +62,45 @@ class personaje: # clase para la construccion de los personajes
         self.ataque_base = ataque
         self.defensa_base = defensa
         self.velocidad_base = velocidad
+        self.icon = pygame.image.load(f"assets/imgs/personajes/{imgRoot}icon.png")
+        self.stand_imgs = [
+            pygame.image.load(f"assets/imgs/personajes/{imgRoot}stand1.png"),
+            pygame.image.load(f"assets/imgs/personajes/{imgRoot}stand2.png"),
+            pygame.image.load(f"assets/imgs/personajes/{imgRoot}stand3.png"),
+            pygame.image.load(f"assets/imgs/personajes/{imgRoot}stand4.png")
+            ]
+        '''
+        self.attack_imgs = [
+            pygame.image.load(f"assets/imgs/personajes/{imgRoot}attack1.png"),
+            pygame.image.load(f"assets/imgs/personajes/{imgRoot}attack2.png"),
+            pygame.image.load(f"assets/imgs/personajes/{imgRoot}attack3.png"),
+            pygame.image.load(f"assets/imgs/personajes/{imgRoot}attack4.png")
+            ]
+        self.protect_imgs = [
+            pygame.image.load(f"assets/imgs/personajes/{imgRoot}protect1.png"),
+            pygame.image.load(f"assets/imgs/personajes/{imgRoot}protect2.png"),
+            pygame.image.load(f"assets/imgs/personajes/{imgRoot}protect3.png"),
+            pygame.image.load(f"assets/imgs/personajes/{imgRoot}protect4.png")
+            ]
+        self.boost_imgs = [
+            pygame.image.load(f"assets/imgs/personajes/{imgRoot}boost1.png"),
+            pygame.image.load(f"assets/imgs/personajes/{imgRoot}boost2.png"),
+            pygame.image.load(f"assets/imgs/personajes/{imgRoot}boost3.png"),
+            pygame.image.load(f"assets/imgs/personajes/{imgRoot}boost4.png")
+            ]
+        self.victoria_imgs = [
+            pygame.image.load(f"assets/imgs/personajes/{imgRoot}victoria1.png"),
+            pygame.image.load(f"assets/imgs/personajes/{imgRoot}victoria2.png"),
+            pygame.image.load(f"assets/imgs/personajes/{imgRoot}victoria3.png"),
+            pygame.image.load(f"assets/imgs/personajes/{imgRoot}victoria4.png")
+            ]
+        self.derrota_imgs = [
+            pygame.image.load(f"assets/imgs/personajes/{imgRoot}derrota1.png"),
+            pygame.image.load(f"assets/imgs/personajes/{imgRoot}derrota2.png"),
+            pygame.image.load(f"assets/imgs/personajes/{imgRoot}derrota3.png"),
+            pygame.image.load(f"assets/imgs/personajes/{imgRoot}derrota4.png")
+            ]
+        '''
         self.bolsa = bolsa
         self.inventario = []
         self.itemE = itemE
@@ -70,12 +109,15 @@ class personaje: # clase para la construccion de los personajes
         self.puntos = 50 # energia, una mecanica de intercambio 
         self.estado = "stand"
         self.estados_esp = []
-        self.estado_imgs = ["/stand1.png","/stand2.png","/stand3.png","/stand4.png"]
+        self.estado_imgs = self.stand_imgs
         self.imgRoot = imgRoot 
-        self.imgAct = imgRoot+self.estado_imgs[0]
+
         self.x = 0
-        self.y = 0
+        self.y = 100
         self.velx = 0
+        self.vely = 0
+        self.height = self.estado_imgs[0].get_height()
+        self.width = self.estado_imgs[0].get_width()
         self.alto = 0
         self.ancho = 280 
         self.cool = 120
@@ -116,7 +158,7 @@ class personaje: # clase para la construccion de los personajes
                 pnts = random.randint(1,10)
                 self.puntos += pnts
                 print(" ... %s : %s+%s puntos%s" % (self.nombre,Fore.GREEN,pnts,Style.RESET_ALL))
-                pnt = ["+%sPnt"%pnts,"Blue",self.x,self.y-100]
+                pnt = ["+%sPnt"%pnts,"Blue",self.x,self.y-self.height/2]
                 if self.puntos > self.puntosMax:
                     self.puntos = self.puntosMax
             else: pnt = False
@@ -146,14 +188,14 @@ Bolsa:
         self.proteccion = True
         print("\n *** %s %sse proteje!🛡️%s" % (self.nombre,Fore.BLUE,Style.RESET_ALL))
         self.estado = "protect"
-        #return [["ESCUDO","Cyan",self.x,self.y-100]]
+        #return [["ESCUDO","Cyan",self.x,self.y-self.height/2]]
         return False
 
     def boost(self): # aumenta el poder del personaje
         print("\n *** %s medita... " %(self.nombre));msg = "+0"
         self.estado = "boost"
         self.puntos += 0.5
-        if (self.puntos >= 80):
+        if (self.puntos >= 100):
             print(Fore.GREEN+" ... la meditacion aumenta su poder!⬆️")
             print(Style.BRIGHT+
                 """
@@ -165,14 +207,23 @@ Bolsa:
             print(Style.RESET_ALL,end="")
             # El aumento es inversamente proporcional al valor actual de la estadistica
             # Se redondea hacia arriba
-            self.ataque += math.ceil(3/self.ataque)
-            self.defensa += math.ceil(3/self.defensa)
-            self.velocidad += math.ceil(18/self.velocidad)
+            atkb = random.randint(1,3)
+            defb = random.randint(1,3)
+            velb = random.randint(1,3)
+            hpb = random.randint(30,60)
+            self.ataque += atkb
+            self.defensa += defb
+            self.velocidad += velb
+            self.salud += hpb
             self.puntos -= 50
-            
-            return [["+%sAtk +%sDef +%sVel"
-            % (math.ceil(3/self.ataque), math.ceil(3/self.defensa), math.ceil(18/self.velocidad)),"Green",self.x,self.y-100]] #devolucion de mensajes
-        elif self.puntos >= 60:
+            if self.salud > self.saludMax: self.salud = self.saludMax
+            return [
+                [f"+{atkb}Atk","lightgreen",self.x,self.y-self.height/2],
+                [f"+{defb}Def","lightgreen",self.x,self.y-self.height/2],
+                [f"+{velb}Vel","lightgreen",self.x,self.y-self.height/2],
+                [f"+{hpb}Hp","lightgreen",self.x,self.y-self.height/2],
+            ] #devolucion de mensajes
+
             stats = ["non","hp","atk","def","vel","pnt","non"] 
             stat = random.choice(stats)
             print(Fore.GREEN,end="")
@@ -189,11 +240,11 @@ Bolsa:
             print(Style.RESET_ALL,end="")
             self.puntos -= 30
 
-            return [[msg,"Lightgreen",self.x,self.y-100]] #devolucion de mensajes
+            return [[msg,"Lightgreen",self.x,self.y-self.height/2]] #devolucion de mensajes
         else:
             print(" ... %s casi se queda dormido 😴\n" % (self.nombre))
 
-            return [["+0.5","gray",self.x,self.y-100]] #devolucion de mensajes
+            return False #devolucion de mensajes
 
     def uBolsa(self,rand=False):
         if len(self.bolsa) > 0:
@@ -219,7 +270,7 @@ Bolsa:
                 else:
                     self.ataque = self.ataque_base
                     self.defensa = self.defensa_base
-                    self.defensa = self.ataque_base
+                    self.velocidad = self.velocidad_base
                     for item in self.bolsa: item.usando = False
                 
                 sel.usuario = self.nombre
@@ -247,13 +298,13 @@ Bolsa:
                         else: self.velocidad += uso[1][uso[0].index(efect)]
                     elif efect == "pnt":
                         self.puntos += uso[1][uso[0].index(efect)]
-                    resultado.append(["+ %s %s"%(uso[1][uso[0].index(efect)],efect),uso[2][uso[0].index(efect)],self.x,self.y-100])
+                    resultado.append(["+ %s %s"%(uso[1][uso[0].index(efect)],efect),uso[2][uso[0].index(efect)],self.x,self.y-self.height/2])
                 if sel.cantidad <= 0: sel.able = False
-                resultado.append(["***%s usa  %s ***"%(self.nombre,sel.nombre),"yellow",self.x,self.y-100])
+                resultado.append(["***%s usa  %s ***"%(self.nombre,sel.nombre),"yellow",self.x,self.y-self.height/2])
                 return resultado
             else: return False
         else: 
-            return [["*** ❌ %s no tiene objetos! ❌ ***" % (self.nombre),"gray",self.x,self.y-100]]
+            return [["*** ❌ %s no tiene objetos! ❌ ***" % (self.nombre),"gray",self.x,self.y-self.height/2]]
 
     def combo(self, oponente):
         print("\n *** %s alista un combo ..."%(self.nombre))
@@ -261,9 +312,9 @@ Bolsa:
             resultado = []
             print("%s%s ... COMBO ! 🌟%s"%(Style.BRIGHT,Fore.GREEN,Style.RESET_ALL))
             multi = random.randint(2,5)
-            for i in range(multi): resultado.append(self.atacar(oponente,random.randint(18,26))[0])
+            for i in range(multi): resultado.append(self.atacar(oponente,random.randint(20,30))[0])
             
-            resultado.append([" ... COMBO ! x %s"%multi,"yellow",self.x,self.y-100])
+            resultado.append([" ... COMBO ! x %s"%multi,"yellow",self.x,self.y-self.height/2])
             self.velx += 300
             self.puntos -= 100
             
@@ -274,7 +325,7 @@ Bolsa:
             print(" ... pero no logra completarlo")
             if (random.randint(0, 10) >= 7):
                 return self.atacar(oponente,22)
-            else: return [[" ... fallido","yellow",self.x,self.y-100]]
+            else: return [[" ... fallido","yellow",self.x,self.y-self.height/2]]
             
         else:
             print(
@@ -282,7 +333,7 @@ Bolsa:
             if (random.randint(0, 10) >= 7): # si un combo se hace sin puntos, es posible que el usuario se haga daño
                 print(Fore.RED+" ... %s se hirio a si mismo! %s-10hp💥%s" % (self.nombre,Fore.RED,Style.RESET_ALL))
                 self.salud -= 10
-                return[["-10hp","red",self.x,self.y-100]] #devolucion de mensajes
+                return[["-10hp","red",self.x,self.y-self.height/2]] #devolucion de mensajes
             else: return False
 
     def autoAct(self, oponente):
@@ -319,7 +370,6 @@ Bolsa:
         if self.vivo():
  
             keys = pygame.key.get_pressed() 
-            
             
             if keys[pygame.K_z]: cool = 0; self.desc(); accion =  False
             elif keys[pygame.K_x]: cool = 0; oponente.desc(); accion =  False
@@ -371,7 +421,19 @@ Bolsa:
         else: self.velx = 0
 
         if self.cool_m > 1: self.cool_m -= 1
+
+    def mover_adv(self,plyr = False):
+        keys = pygame.key.get_pressed() 
         
+        if keys[pygame.K_w]: self.vely = -10 
+        if keys[pygame.K_d]: self.velx += 1  
+        if keys[pygame.K_a]: self.velx -= 1 
+        if keys[pygame.K_s]: self.vely += 1
+
+        self.x += self.velx
+        self.y += self.vely
+        if self.vely <= -1: self.vely+=1 
+
     def enfrente(self,oponente):
         if oponente.pos > self.pos:
             return True
@@ -392,14 +454,23 @@ items_base = {
     "libro" : item("libro",1,efectos=["atk"],valores=[2],consumible=False,img="/libro.png"),
     "locura" : item("locura",2,efectos=["hp","atk","def"],valores=[-35,7,7],img="/locura.png"),
     "Soul" : item("Soul", 1,efectos=["hp","atk","def","pnt"],valores=[20,4,5,1],consumible=False,img="/soul.png"),
+
 }   
 personajes_base = [
     personaje(
-        "test1",100,2,100,10,[]
+        "des",100,2,100,10,[
+            copy.copy(items_base["libro"])
+            ],
+            "des/"
     ),
     personaje(
-        "test2",100,2,100,10,[]
-    )
+        "test1",100,2,100,10,[
+            copy.copy(items_base["tiza"]),
+            items_base["imaginacion"],
+            copy.copy(items_base["te"])
+            ]
+    ),
+    
 ]
 '''
     personaje("Alfonse", 400, 2, 5, 17,[
